@@ -235,6 +235,46 @@ void RunTMMAS()
     }
 }
 
+ //*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^
+//RunTMMAS: call TMMAS algorithm for one of individual
+void RunTMMAS(Individual tomut)
+{
+   float GB=(float) 0.0;
+   TMMAS tmmas = new TMMAS();
+   for(int p=0;p<Num_Genes;p++)
+   {
+       tmmas.Par[p]=tomut.Individual[p];
+   }
+   tmmas.Initial_TMMAS(indextarget);
+   tmmas.run();
+  
+   //set the parameter
+   //
+   tomut.LBtour=tmmas.FitMMAS;
+   if(tmmas.FitMMAS>GBtour)
+       GB=tmmas.FitMMAS;
+   else
+       GB=GBtour;
+    //
+    tomut.Iter=tmmas.IterMMAS;
+    //
+    tomut.indexIn.clear();
+    tomut.indexIn.addAll(tmmas.indexMMAS);    
+   
+   // set the fitness
+    float num=(float) 0.0;
+    for(int i=0;i<ResultOfPre.size();i++)
+        num=num+ResultOfPre.get(i).Gloss.size();
+    tomut.Fitness_FT=0;
+    double F1;
+        F1=2.5*(1/((GB+1)- tomut.LBtour));
+     tomut.Fitness_FT=(float) ( tomut.Fitness_FT+F1);
+    double F2=0.5*(Math.exp(-( tomut.Iter/(5*num))));
+     tomut.Fitness_FT=(float) ( tomut.Fitness_FT+F2);
+    double F3=0.5*(Math.exp(-( tomut.Individual[0]/(10*num))));
+     tomut.Fitness_FT=(float) ( tomut.Fitness_FT+F3);
+}
+ 
 //*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^*^
 //Generational Function: generated next generation
 void Generational(Vector<Individual> NewPOP)
@@ -263,8 +303,8 @@ Vector<Individual> Crossover1Point(Individual IND1,Individual IND2) throws JWNLE
           TMP2.Individual[j]=temp;
       }
       
-      TMP1.Calc_fitness();
-      TMP2.Calc_fitness();
+      RunTMMAS(TMP1);
+      RunTMMAS(TMP2);
 
       TMP.add(TMP1);
       TMP.add(TMP2);
@@ -296,8 +336,8 @@ Vector<Individual> UniformCrossover(Individual IND1,Individual IND2) throws JWNL
           }
       }
       
-      TMP1.Calc_fitness();
-      TMP2.Calc_fitness();
+      RunTMMAS(TMP1);
+      RunTMMAS(TMP2);
       
       TMP.add(TMP1);
       TMP.add(TMP2);
